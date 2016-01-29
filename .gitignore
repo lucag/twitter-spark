@@ -1,0 +1,9 @@
+**/*.zip
+bin/
+target/
+.idea/
+.project
+*.iml
+.classpath
+tmp/
+classes/
