@@ -5,7 +5,7 @@
 
 name := "TwitterSentimentAnalyzer"
 
-version := "0.1.0"
+version := "0.2.0"
 
 scalaVersion := "2.10.5"
 
@@ -22,9 +22,12 @@ packAutoSettings
 
 libraryDependencies ++= Seq(
   "org.apache.spark"  %% "spark-core"                     % "1.6.0" % "provided",
-  "org.apache.spark"   % "spark-streaming_2.10"           % "1.6.0" % "provided",
+  "org.apache.spark"  %% "spark-streaming"                % "1.6.0" % "provided",
+  "edu.stanford.nlp"   % "stanford-corenlp"               % "3.6.0" % "provided",
+  "org.json4s"        %% "json4s-native"                  % "3.3.0" % "provided",
+  "edu.stanford.nlp"   % "stanford-corenlp"               % "3.6.0" classifier "models",
   ("org.apache.spark"  % "spark-streaming-twitter_2.10"   % "1.6.0")
-      .exclude("org.spark-project.spark", "unused") // this worked
+    .exclude("org.spark-project.spark", "unused") // this works
 )
 
 resolvers ++= Seq(
@@ -35,7 +38,7 @@ resolvers ++= Seq(
   "Twitter4J Repository"          at "http://twitter4j.org/maven2/",
   "Apache HBase"                  at "https://repository.apache.org/content/repositories/releases",
   "Twitter Maven Repo"            at "http://maven.twttr.com/",
-  "scala-tools"                   at "https://oss.sonatype.org/content/groups/scala-tools",
+//  "scala-tools"                   at "https://oss.sonatype.org/content/groups/scala-tools",
   "Typesafe repository"           at "http://repo.typesafe.com/typesafe/releases/",
   "Second Typesafe repo"          at "http://repo.typesafe.com/typesafe/maven-releases/",
   "Mesosphere Public Repository"  at "http://downloads.mesosphere.io/maven",
