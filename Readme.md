@@ -43,20 +43,20 @@ Top 10 handles in the last 300000 ms (non-cumulative):
   1 from @VirginAustralia
 ```
 
-An example of the sentiment analysis follows below. The tweets are grouped by predicted polarity: `(+)` for positive, `(-)` for negative, `(=)` for neutral. Between square brakets is the actual output of the analyzer, averaged over the sentences composing the tweet. Instead ot taking the average, a different strategy would be to pick the most exreme. The neutral label here is assigned (quite arbitrarily) to a small interval aroud 2.0, so arguably the most reliable lables are the other two.
+An example of the sentiment analysis follows below. The tweets are grouped by predicted polarity: `(+)` for positive, `(-)` for negative, `(=)` for neutral. Between square brackets is the actual output of the analyzer, averaged over the sentences composing the tweet. Instead ot taking the average, a different strategy would be to pick the most extreme. The neutral label here is assigned (quite arbitrarily) to a small interval around 2.0, so arguably the most reliable labels are the other two.
 
 The sentiment analyszer uses a Recursive Neural Tensor Network that learns semantics over parse trees, instead of bag of words. It produces state-of-the-art accuracy results.
 
-The code is moslty in Scala, with some Python to evaluate the sentiment analysis.  
+The code is mostly in Scala, with some Python to evaluate the sentiment analysis.  
 
-For details about the sentiment anaysis and an evaluation on this kind of data, please see [the notebook](https://github.com/lucag/twitter-spark/tree/master/notebooks/).
+For details about the sentiment analysis and an evaluation on this kind of data, please see [the notebook](https://github.com/lucag/twitter-spark/tree/master/notebooks/).
 
 ```
 Tweets with sentiment in the last 300000 ms:
   (+)
     [3.0]: @SouthwestAir loved the new #Boeing737, beautiful cabin and great crew! DEN-AUS #1262 tha
 nks for a great flight! https://t.co/4Rsn2AKlpG
-    [3.0]: RT @MichaelReid90: Arrived at the airport after a great win for @FMoverley! thanks @SQUAS
+    [3.0]: @MichaelReid90: Arrived at the airport after a great win for @FMoverley! thanks @SQUAS
 HTRAVEL for the @AmericanAir flight :) https://t.c…
     [3.0]: Enter to win a trip of a lifetime to New Zealand from @PureNewZealand @FlyAirNZ & @Tumitr
 avel via @HarperTravel https://t.co/RtBpPinP85
@@ -89,7 +89,7 @@ https://t.co/iXcyUvn0RG https://t.co/AhKQt63r1j
 
 ## How to run locally
 
-The code is The code assumes a Spark 1.6.0 installation be already present, and Oracle JDK 1.8.
+The code assumes a Spark 1.6.0 installation be already present, and Oracle JDK 1.8.
 
 From the command shell (assuming a Linux or OS X environment), clone this repository:
 
@@ -97,13 +97,13 @@ From the command shell (assuming a Linux or OS X environment), clone this reposi
 $ git clone https://github.com/lucag/twitter-spark.git
 ```
 
-Change into the newly-creaded `twitter-spark` directory, and type 
+Change into the newly-created `twitter-spark` directory, and type 
 
 ```bash
 $ ./bin/run
 ```
 
-To stop the compitation, simply hit `Ctrl-C`. The output is created in the file `var/report.txt`; it 
+To stop the computation, simply hit `Ctrl-C`. The output is created in the file `var/report.txt`; it 
 can be looked at as follows:
 
 ```bash
@@ -128,7 +128,7 @@ $ ./bin/run
 
 ## Docker
 
-The Docker support is partial, since testing is unfinished. For that reason, I haven't pused it to Docker Hub. It's possible to build and run a container, though:  
+Docker support is partial, since testing is unfinished. For that reason, I haven't pushed it to Docker Hub. It's possible to build and run a container, though:  
  
 ```bash
 $ docker build -t lucag/twitter-spark:0.2.0
