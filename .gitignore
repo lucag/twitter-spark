@@ -79,6 +79,8 @@ project/boot/
 project/plugins/project/
 /notebooks/metastore_db
 /notebooks/derby.log
+/docs
+/data/SemEval2014-Task9-subtaskAB-test-to-download
 /notebooks/.ipynb_checkpoints
 
 # Scala-IDE specific
