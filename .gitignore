@@ -84,7 +84,8 @@ project/plugins/project/
 .worksheet
 
 # Spark
-var/**
+var/checkpoint
+var/relevant-tweets*
 metastore_db/
 
 ### IPythonNotebook template
