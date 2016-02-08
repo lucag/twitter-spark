@@ -27,7 +27,7 @@ The airlines considered are the following:
 * Air New Zealand, @FlyAirNZ
 * Air New Zealand USA, @AIRNZUSA
 
-The output is saved to a file — please see below for more information, or, to look at the [Jupyter](http://jupyter.org) Notebook, click [here](https://github.com/lucag/twitter-spark/notebooks/). 
+The output is saved to a file — please see below for more information.
 
 Here how the top user mention output looks like: 
 
@@ -45,7 +45,11 @@ Top 10 handles in the last 300000 ms (non-cumulative):
 
 An example of the sentiment analysis follows below. The tweets are grouped by predicted polarity: `(+)` for positive, `(-)` for negative, `(=)` for neutral. Between square brakets is the actual output of the analyzer, averaged over the sentences composing the tweet. Instead ot taking the average, a different strategy would be to pick the most exreme. The neutral label here is assigned (quite arbitrarily) to a small interval aroud 2.0, so arguably the most reliable lables are the other two.
 
-For details about the sentiment anaysis, please see [the notebook]().
+The sentiment analyszer uses a Recursive Neural Tensor Network that learns semantics over parse trees, instead of bag of words. It produces state-of-the-art accuracy results.
+
+The code is moslty in Scala, with some Python to evaluate the sentiment analysis.  
+
+For details about the sentiment anaysis and an evaluation on this kind of data, please see [the notebook](https://github.com/lucag/twitter-spark/tree/master/notebooks/).
 
 ```
 Tweets with sentiment in the last 300000 ms:
@@ -83,16 +87,9 @@ https://t.co/iXcyUvn0RG https://t.co/AhKQt63r1j
 ```
 
 
-
-
-The code is moslty in Scala, with some Python to evaluate the sentiment analysis  
-
-## Docker
-
-
 ## How to run locally
 
-The code assumes a Spark 1.6.0 installation be already present, and Oracle JDK 1.8.
+The code is The code assumes a Spark 1.6.0 installation be already present, and Oracle JDK 1.8.
 
 From the command shell (assuming a Linux or OS X environment), clone this repository:
 
@@ -113,15 +110,48 @@ can be looked at as follows:
 $ tail -f var/report.txt
 ```
 
-The output is created according to requirements, i.e., every 5 minutes. Such time is wired in the code (in the file `src/main/scala/BasicTask.scala` around  line 185), and can be changed.
+Such file is also [accessible from the repository itself](https://github.com/lucag/twitter-spark/var/report.txt).
+ 
+The output is created according to requirements, i.e., every 5 minutes. Such time is wired in the code (in the file `src/main/scala/BasicTask.scala` around  line 185).
 
-To recompile, issue
+To recompile, issue:
+
 ```bash
 $ sbt assembly
 ```
 
-followed again by
+followed again by:
 
 ```bash
 $ ./bin/run
 ```
+
+## Docker
+
+The Docker support is partial, since testing is unfinished. For that reason, I haven't pused it to Docker Hub. It's possible to build and run a container, though:  
+ 
+```bash
+$ docker built -t lucag/twitter-spark:0.2.0
+```
+
+and run it:
+
+```bash
+$ docker run -it lucag/twitter-spark:0.2.0
+```
+
+In order to see the report file, one has to log into the running container:
+
+```bash
+$ docker exec -it lucag/twitter-spark:0.2.0 bash
+```
+
+and then look at the `report.txt` file:
+
+```bash
+$ cd /home/lucag/twitter-spark/
+$ tail -F var/report.txt
+```
+
+
+

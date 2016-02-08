@@ -13,24 +13,14 @@ import org.apache.log4j.{Level, Logger}
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.twitter._
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{Logging, SparkConf, SparkContext}
 import twitter4j.{Status, UserMentionEntity}
 
 import scala.io.Source
 import scala.language.postfixOps
 
-/** Data access and OAuth settings */
-object Data {
-  // Base directory for all data files
-  def baseDir: String = sys.props("base.data.dir")
-
-  // File from a resource directory (see build.sbt)
-  def resource(name: String) = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(name))
-
-  // read file from data directory
-  def file(name: String) = Source.fromFile(baseDir + name)
-
-  def fileAppender(name: String) = new PrintWriter(new FileOutputStream(new File(name), true))
+object Config extends Logging {
+  import Data._
 
   // Side-effecting (but idempotent) configuration of the Oauth Credentials for accessing Twitter
   def updateEnvironment(): Unit = {
@@ -40,8 +30,8 @@ object Data {
       .toSeq
 
     // Pattern matching and Either objects to avoid possibly malformed lines
-    val pairs = lines map {
-      line => line.split("\\s*=\\s*") match {
+    val pairs = lines map { line =>
+      line.split("\\s*=\\s*") match {
         case Array(k, v) => Right((k, v))
         case _ => Left(s"In $line: must be <path.to.key> = <value>")
       }
@@ -54,8 +44,33 @@ object Data {
         println(s"  $key = $value")
       case Left(message) => println(s"Error: $message")
     }
-
   }
+
+  // Set reasonable logging levels
+  def setStreamingLogLevels() {
+    val log4jInitialized = Logger.getRootLogger.getAllAppenders.hasMoreElements
+    if (!log4jInitialized) {
+      // We first log something to initialize Spark's default logging, then we override the
+      // logging level.
+      logInfo("Setting log level to [WARN] for streaming example."
+              + "To override add a custom log4j.properties to the classpath")
+      Logger.getRootLogger.setLevel(Level.WARN)
+    }
+  }
+}
+
+/** Data access and OAuth settings */
+object Data {
+  // Base directory for all data files
+  def baseDir: String = sys.env("APP_BASE")
+
+  // File from a resource directory (see build.sbt)
+  def resource(name: String) = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(name))
+
+  // read file from data directory
+  def file(name: String) = Source.fromFile(baseDir + name)
+
+  def fileAppender(name: String) = new PrintStream(new FileOutputStream(new File(name), true))
 
   // The handles of the airlines we're interested in
   def handles: Seq[String] = file("/data/airline-twitter-sentiment/airline-handles")
@@ -128,13 +143,15 @@ object BasicTask {
 
   // This is just a general test
   def run(): Unit = {
-    Data.updateEnvironment()
+    Config.updateEnvironment()
+    Config.setStreamingLogLevels()
 
     val log4j = s"-Dlog4j.configuration=${Data.baseDir}/etc/log4j.properties"
 
     println("Set Log to Warn")
     Logger.getRootLogger.setLevel(Level.WARN)
 
+    // Create Spark context
     val conf = new SparkConf()
       .setAppName("TwitterSentimenter")
       .setMaster("local[*]")
@@ -146,10 +163,9 @@ object BasicTask {
     // Set checkpoint directory: needed for the
     ssc.checkpoint(Data.baseDir + "/var/checkpoint")
 
-    // The handles we want to extract (without @)
+    // The handles we want to extract (without the initial @)
     val airlineHandles = Set(Data.handles.map(_.substring(1)) :_*)
 
-    //    val twitter = new TwitterFactory().getInstance()
     val tweets = TwitterUtils.createStream(ssc, None, Data.handles.toArray)
       .filter { s =>
         s.getLang match {
@@ -177,12 +193,10 @@ object BasicTask {
       ).mkString("\t")
     }
 
-    // Turn all tweets to JSON
-    tweets.map(toTSV).saveAsTextFiles(s"${Data.baseDir}/var/relevant-tweets")
+    // Turn all tweets to JSON and save them
+    //    tweets.map(toTSV).saveAsTextFiles(s"${Data.baseDir}/var/relevant-tweets")
 
-    val reportWriter = new PrintWriter(new File(s"${Data.baseDir}/var/report.txt"))
-
-    val topItemCount  = 25                // How many items to report
+    val topItemCount  = 10                // How many items to report
     val windowTime    = Minutes(5)        // Window timeframe duration
 
     // Extract relevant user mentions
@@ -191,6 +205,7 @@ object BasicTask {
       .filter(e => airlineHandles.contains(e.getText.toLowerCase()))
 
     val fileName = s"${Data.baseDir}/var/report.txt"
+    println(s"Reporting to $fileName")
 
     reportTopSymbols(userMentions, topItemCount, windowTime, fileName)
 
@@ -200,9 +215,12 @@ object BasicTask {
     ssc.start()
 
     // Terminate gracefully on signals
-    sys.addShutdownHook(ssc.stop())
+    sys.addShutdownHook {
+      println("Signal received, shutting down")
+      ssc.stop()
+    }
 
-    Thread.sleep(Minutes(6 * 60) milliseconds)
+    Thread.sleep(Minutes(5 * 60) milliseconds)
 
     ssc.stop()
   }
@@ -233,8 +251,11 @@ object Sentiment {
     else
       "+"
 
+  val badOnes = "\uFE0F|\uD83D|\uD83C".r
+
   def analyze(sentence: String): Double = if (sentence.length > 0) {
-    val annotation = pipeline.process(sentence)
+    val cleanedSentence = badOnes.replaceAllIn(sentence, " ")
+    val annotation = pipeline.process(cleanedSentence)
     val sentiments = new JListWrapper(annotation.get(classOf[CoreAnnotations.SentencesAnnotation]))
       .map { s =>
         val tree = s.get(classOf[SentimentCoreAnnotations.SentimentAnnotatedTree])
@@ -255,6 +276,12 @@ object AccuracyTest {
   case class OutTweet(text: String, polarity: String, sentiment: Double)
   case class InTweet(text: String, polarity: String)
 
+  // Remove the following from the sentence stream; they cause the lexer to issue
+  // a warning:
+  //  16/02/05 22:36:45 WARN PTBLexer: Untokenizable: ? (U+D83D, decimal: 55357)
+  //  16/02/05 22:36:47 WARN PTBLexer: Untokenizable: ️ (U+FE0F, decimal: 65039)
+  val badOnes = "\uFE0F|\uD83D|\uD83C".r
+
   // Process input file for sentiment
   def process(fileName: String): Unit = {
     val conf = new SparkConf()
@@ -262,11 +289,6 @@ object AccuracyTest {
       .setMaster("local[*]")
 
     val Array(base, ext) = fileName.split("\\.")
-
-    // Remove the following:
-    //  16/02/05 22:36:45 WARN PTBLexer: Untokenizable: ? (U+D83D, decimal: 55357)
-    //  16/02/05 22:36:47 WARN PTBLexer: Untokenizable: ️ (U+FE0F, decimal: 65039)
-    val badOnes = "\uFE0F|\uD83D|\uD83C".r
 
     val sc = new SparkContext(conf)
 

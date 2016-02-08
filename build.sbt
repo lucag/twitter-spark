@@ -2,6 +2,12 @@
 // build.sbt | Scala build file for the project
 //    author | Luca Gilardi <lucag@icsi.berkeley.edu>
 // --------------------------------------------------
+// Docker
+
+enablePlugins(DockerPlugin)
+
+//import sbtdocker.DockerKeys._
+packAutoSettings
 
 name := "TwitterSentimentAnalyzer"
 
@@ -18,7 +24,21 @@ includeFilter in (Runtime, unmanagedResources) := "*.conf"
 unmanagedResourceDirectories in Compile += baseDirectory.value / "etc"
 //unmanagedResourceDirectories in Runtime += baseDirectory.value / "data"
 
-packAutoSettings
+dockerfile in docker := {
+  // The assembly task generates a fat JAR file
+  val artifact: File = assembly.value
+  val artifactTargetPath = s"/app/${artifact.name}"
+
+  new Dockerfile {
+    from("jupyter/all-spark-notebook")
+    add(artifact, artifactTargetPath)
+    add(s"${baseDirectory.value}/etc", "/app/etc")
+    add(s"${baseDirectory.value}/data", "/app/data")
+    add(s"${baseDirectory.value}/var", "/app/var")
+    add(s"${baseDirectory.value}/notebooks", "/app/notebooks")
+    entryPoint("bash", "-c", "/app/bin/run")
+  }
+}
 
 libraryDependencies ++= Seq(
   "org.apache.spark"  %% "spark-core"                     % "1.6.0" % "provided",
