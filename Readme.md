@@ -131,7 +131,7 @@ $ ./bin/run
 The Docker support is partial, since testing is unfinished. For that reason, I haven't pused it to Docker Hub. It's possible to build and run a container, though:  
  
 ```bash
-$ docker built -t lucag/twitter-spark:0.2.0
+$ docker build -t lucag/twitter-spark:0.2.0
 ```
 
 and run it:
