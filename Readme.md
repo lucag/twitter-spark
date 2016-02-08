@@ -110,7 +110,7 @@ can be looked at as follows:
 $ tail -f var/report.txt
 ```
 
-Such file is also [accessible from the repository itself](https://github.com/lucag/twitter-spark/var/report.txt).
+Such file is also [accessible from the repository itself](https://raw.githubusercontent.com/lucag/twitter-spark/master/var/report.txt).
  
 The output is created according to requirements, i.e., every 5 minutes. Such time is wired in the code (in the file `src/main/scala/BasicTask.scala` around  line 185).
 
