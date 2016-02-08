@@ -85,4 +85,9 @@ project/plugins/project/
 
 # Spark
 var/**
+metastore_db/
+
+### IPythonNotebook template
+# Temporary data
+**/.ipynb_checkpoints/
 
