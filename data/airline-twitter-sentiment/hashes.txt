@@ -1,0 +1,7 @@
+Current git commit:
+c5841fb0cd3b6a3f346cd7abc4884c44975fe40e
+
+Current input/ouput md5 hashes:
+MD5 (output/Tweets.csv) = 2fa808ea99b32814ccd64d7097d935f2
+MD5 (output/database.sqlite) = 10f28d5733711e6a90f2995bc521ae84
+MD5 (input/Tweets.csv) = fda036670e7457f561b8c9243e4569e8
