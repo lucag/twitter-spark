@@ -128,30 +128,36 @@ $ ./bin/run
 
 ## Docker
 
-Docker support is partial, since testing is unfinished. For that reason, I haven't pushed it to Docker Hub. It's possible to build and run a container, though:  
- 
-```bash
-$ docker build -t lucag/twitter-spark:0.2.0
-```
-
-and run it:
+Docker support is now full: testing has been successfully completed on an container with 8GB or RAM. It's been pushed it to Docker Hub. To run it, enter: 
 
 ```bash
-$ docker run -it lucag/twitter-spark:0.2.0
+$ docker run -it --name twitter_run lucag/twitter-spark
 ```
 
 In order to see the report file, one has to log into the running container:
 
 ```bash
-$ docker exec -it lucag/twitter-spark:0.2.0 bash
+$ docker exec -it twitter_run bash
 ```
 
 and then look at the `report.txt` file:
 
 ```bash
-$ cd /home/lucag/twitter-spark/
-$ tail -F var/report.txt
+$ tail -F $APP_HOME/var/report.txt
 ```
+
+To rebuild the container, issue:  
+ 
+```bash
+$ docker build -t lucag/twitter-spark
+```
+
+And, as above, to run it under the name "arbitrary_name" (the same name to be used with `exec`), issue:
+
+```bash
+$ docker run -it --name arbitrary_name lucag/twitter-spark
+```
+
 
 
 
