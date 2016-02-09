@@ -10,5 +10,5 @@ ASSEMBLY="${LIB}/TwitterSentimentAnalyzer-assembly-${VERSION}.jar"
 #    spark-submit --class BasicTask $ASSEMBLY 2> ${APP_BASE}/var/log &
 #    exec tail -F ${APP_BASE}/var/report.txt
 #else
-    exec spark-submit --class BasicTask $ASSEMBLY
+    exec spark-submit --class BasicTask ${ASSEMBLY}
 #fi

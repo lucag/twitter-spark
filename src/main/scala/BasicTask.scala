@@ -22,7 +22,7 @@ import scala.language.postfixOps
 object Config extends Logging {
   import Data._
 
-  // Side-effecting (but idempotent) configuration of the Oauth Credentials for accessing Twitter
+  // Side-effecting (but idempotent) configuration of the OAuth Credentials for accessing Twitter
   def updateEnvironment(): Unit = {
     val lines = resource("twitter.conf") // from resources (see build.sbt)
       .getLines
