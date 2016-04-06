@@ -149,7 +149,7 @@ $ tail -F $APP_HOME/var/report.txt
 To rebuild the container, issue:  
  
 ```bash
-$ docker build -t lucag/twitter-spark
+$ docker build -t lucag/twitter-spark .
 ```
 
 And, as above, to run it under the name "arbitrary_name" (the same name to be used with `exec`), issue:

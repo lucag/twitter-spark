@@ -2,13 +2,8 @@
 
 export APP_BASE=${APP_HOME:-$HOME/src/evals/twitter-spark}
 
-VERSION="0.2.0"
+VERSION="0.2.2"
 LIB=${APP_HOME:-target/scala-2.10}
 ASSEMBLY="${LIB}/TwitterSentimentAnalyzer-assembly-${VERSION}.jar"
 
-#if [ "${APP_IN_DOCKER:-False}" != "False" ]; then
-#    spark-submit --class BasicTask $ASSEMBLY 2> ${APP_BASE}/var/log &
-#    exec tail -F ${APP_BASE}/var/report.txt
-#else
-    exec spark-submit --class BasicTask ${ASSEMBLY}
-#fi
+exec spark-submit --class BasicTask ${ASSEMBLY} --master --local[4]

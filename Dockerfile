@@ -1,12 +1,15 @@
 # lucag/twitter-spark
 #
-# VERSION 0.2.0
+# VERSION 0.2.2
 
 FROM phusion/baseimage
 
 MAINTAINER Luca Gilardi <lucag@icsi.berkeley.edu>
 
 USER root
+
+# Update OS
+#RUN apt-get update && apt-get upgrade -y -o Dpkg::Options::="--force-confold" --fix-missing
 
 # Java 8
 RUN echo debconf shared/accepted-oracle-license-v1-1 select true \
@@ -35,6 +38,71 @@ RUN cd /usr/local && ln -s spark-1.6.0-bin-hadoop2.6 spark
 #RUN sudo apt-get -y update
 #RUN sudo apt-get -y install sbt
 
+RUN apt-get -y update
+
+# Pip
+RUN apt-get -y install python-pip
+
+# Jupyter
+RUN apt-get -y install build-essential libtool autoconf
+RUN apt-get -y install automake pkg-config python-dev
+RUN apt-get -y install python-zmq
+RUN apt-get -y install python-matplotlib
+RUN apt-get -y install python-pandas
+
+RUN apt-get -y install librdkafka-dev
+RUN pip install kafka-python
+RUN pip install pykafka
+
+RUN pip install jupyter
+RUN pip install jupyter_declarativewidgets
+RUN pip install jupyter_dashboards
+
+RUN apt-get -y install nodejs
+RUN ln -s /usr/bin/nodejs /usr/bin/node
+RUN apt-get -y install npm
+RUN npm install -g bower
+
+EXPOSE 8888
+
+#
+#   Zookeeper
+#
+ENV HOSTS               localhost
+ENV ZK_SERVER_ID        1
+ENV ZK_CLIENT_PORT      2181
+ENV ZK_PEER_PORT        2888
+ENV ZK_ELECTION_PORT    3888
+
+RUN apt-get -y install zookeeperd
+
+ADD etc/zoo.cfg         /etc/zookeeper/conf/zoo.cfg
+
+ADD etc/setup.sh        /tmp/
+RUN /tmp/setup.sh
+
+ADD etc/zookeeper.sh    /etc/service/zookeeper/run
+
+# Just in case...
+EXPOSE 2181 2888 3888
+
+#
+#   Kafka
+#
+RUN useradd -m kafka
+RUN adduser kafka sudo
+
+WORKDIR /home/kafka
+
+RUN wget http://www.us.apache.org/dist/kafka/0.8.2.2/kafka_2.9.2-0.8.2.2.tgz
+RUN tar xzf kafka_2.9.2-0.8.2.2.tgz --strip 1
+RUN rm      kafka_2.9.2-0.8.2.2.tgz
+
+RUN mkdir /etc/service/kafka
+ADD etc/kafka.sh /etc/service/kafka/run
+
+USER root
+
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -53,17 +121,38 @@ USER root
 
 RUN useradd -m -s /bin/bash $APP_USER
 
-COPY var/  $APP_HOME/var/
-COPY bin/  $APP_HOME/bin/
+COPY var/               $APP_HOME/var/
+COPY bin/               $APP_HOME/bin/
+COPY notebooks/*.ipynb  $APP_HOME/notebooks/
 COPY data/airline-twitter-sentiment/airline-handles $APP_HOME/data/airline-twitter-sentiment/
 
-COPY ./target/scala-2.10/TwitterSentimentAnalyzer-assembly-0.2.0.jar $APP_HOME
+RUN mkdir $APP_HOME/var/log/
+
+COPY ./target/scala-2.10/TwitterSentimentAnalyzer-assembly-0.2.2.jar $APP_HOME
 
 RUN chown -R lucag.lucag $APP_HOME
 
+# Start Jupyter Notebook
+RUN mkdir /etc/service/notebook
+ADD etc/notebook.sh /etc/service/notebook/run
+##CMD ["jupyter-notebook", "--no-browser", "--notebook-dir=notebooks", "--ip=0.0.0.0"]
+
+#USER lucag
+#RUN npm install -g bower
+
+# Start Spark App
+RUN mkdir /etc/service/twitter-spark
+ADD etc/twitter-spark.sh /etc/service/twitter-spark/run
+##CMD sh "${APP_HOME}/bin/run"
+
 USER $APP_USER
 
-RUN cd $APP_HOME
+# Declarative widgets
+RUN jupyter declarativewidgets install --user --symlink --overwrite
+RUN jupyter declarativewidgets activate
 
-CMD sh "${APP_HOME}/bin/run"
+# Dashboards
+RUN jupyter dashboards install --user --symlink --overwrite
+RUN jupyter dashboards activate
 
+USER root
