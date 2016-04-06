@@ -49,7 +49,7 @@ The sentiment analyszer uses a Recursive Neural Tensor Network that learns seman
 
 The code is mostly in Scala, with some Python to evaluate the sentiment analysis.  
 
-For details about the sentiment analysis and an evaluation on this kind of data, please see [the notebook](https://github.com/lucag/twitter-spark/tree/master/notebooks/).
+For details about the sentiment analysis and an evaluation on this kind of data, please see [the notebook](https://github.com/lucag/twitter-spark/blob/master/notebooks/Accuracy%20Testing.ipynb).
 
 ```
 Tweets with sentiment in the last 300000 ms:
